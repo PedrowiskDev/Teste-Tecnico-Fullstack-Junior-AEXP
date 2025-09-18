@@ -17,6 +17,15 @@ export const eventController = {
   async create(req: Request, res: Response) {
     const { title, description, status, capacity } = req.body;
     try {
+      if (!title || title.trim() === "") {
+        return res.status(400).json({ error: "Must have a title" });
+      }
+      if (typeof capacity !== "number" || capacity < 0) {
+        return res
+          .status(400)
+          .json({ error: "Capacity can't be lower than zero" });
+      }
+
       const event = await eventRepository.create({
         title,
         description,

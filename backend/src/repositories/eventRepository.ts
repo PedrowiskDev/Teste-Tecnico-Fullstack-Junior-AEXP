@@ -3,7 +3,7 @@ import { PrismaClient, Status } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const eventRepository = {
-  findAll: () => prisma.event.findMany(),
+  findAll: () => prisma.event.findMany({}),
 
   findById: (id: string) =>
     prisma.event.findUnique({

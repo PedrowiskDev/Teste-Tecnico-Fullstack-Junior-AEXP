@@ -29,7 +29,7 @@ model Inscription {
   eventId String
   event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   
-  @@unique([phone])
+  @@unique([phone, eventId])
 }
 
 enum Status {
