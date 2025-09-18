@@ -5,6 +5,9 @@ const router = Router();
 
 router.post("/:id/inscriptions", inscriptionController.create);
 router.get("/:id/inscriptions", inscriptionController.getByEvent);
-router.delete("/inscriptions/:id", inscriptionController.remove);
+router.delete(
+  "/:eventId/inscriptions",
+  inscriptionController.removeByEventAndPhone
+);
 
 export default router;

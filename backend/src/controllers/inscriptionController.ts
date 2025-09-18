@@ -59,15 +59,30 @@ export const inscriptionController = {
     }
   },
 
-  async remove(req: Request, res: Response) {
-    const id = String(req.params.id);
+  async removeByEventAndPhone(req: Request, res: Response) {
+    const eventId = String(req.params.eventId);
+    const { phone } = req.body;
+    console.log(eventId, phone);
+    if (!phone) {
+      return res.status(400).json({
+        error: "Telefone é obrigatório",
+      });
+    }
 
     try {
-      await inscriptionRepository.delete(id);
+      await inscriptionRepository.deleteByEventAndPhone(eventId, phone);
       res.status(204).send();
-    } catch (error) {
-      res.status(404).json({
-        error: "Inscrição não encontrada",
+    } catch (error: any) {
+      if (
+        error.message === "Inscrição não encontrada para este telefone e evento"
+      ) {
+        return res.status(404).json({
+          error: "Inscrição não encontrada para este telefone e evento",
+        });
+      }
+
+      res.status(500).json({
+        error: "Erro ao cancelar inscrição",
       });
     }
   },

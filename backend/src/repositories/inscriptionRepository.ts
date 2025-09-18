@@ -30,6 +30,7 @@ export const inscriptionRepository = {
     return await prisma.inscription.findMany({
       where: { eventId },
       select: {
+        eventId: true,
         id: true,
         name: true,
         phone: true,
@@ -40,10 +41,23 @@ export const inscriptionRepository = {
     });
   },
 
-  async delete(id: string) {
-    return await prisma.inscription.delete({
-      where: { id },
-    });
+  async deleteByEventAndPhone(eventId: string, phone: string) {
+    try {
+      console.log(eventId, phone);
+      return await prisma.inscription.delete({
+        where: {
+          phone_eventId: {
+            phone,
+            eventId,
+          },
+        },
+      });
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw new Error("Inscrição não encontrada para este telefone e evento");
+      }
+      throw error;
+    }
   },
 
   async findById(id: string) {
