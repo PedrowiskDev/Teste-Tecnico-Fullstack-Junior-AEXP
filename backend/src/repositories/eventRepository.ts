@@ -22,12 +22,12 @@ export const eventRepository = {
 
   update: (
     id: string,
-    data: {
+    data: Partial<{
       title: string;
       description?: string;
       status: Status;
       capacity: number;
-    }
+    }>
   ) =>
     prisma.event.update({
       where: { id },

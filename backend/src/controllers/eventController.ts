@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { eventRepository } from "../repositories/eventRepository";
+import { createEventSchema, updateEventSchema } from "../schemas/event";
+import { ZodError } from "zod";
 
 export const eventController = {
   async getAll(req: Request, res: Response) {
@@ -15,42 +17,38 @@ export const eventController = {
   },
 
   async create(req: Request, res: Response) {
-    const { title, description, status, capacity } = req.body;
     try {
-      if (!title || title.trim() === "") {
-        return res.status(400).json({ error: "Must have a title" });
-      }
-      if (typeof capacity !== "number" || capacity < 0) {
-        return res
-          .status(400)
-          .json({ error: "Capacity can't be lower than zero" });
-      }
-
-      const event = await eventRepository.create({
-        title,
-        description,
-        status,
-        capacity,
-      });
+      const data = createEventSchema.parse(req.body);
+      const event = await eventRepository.create(data);
       res.status(201).json(event);
     } catch (error) {
-      res.status(400).json({ error: "Event already exists" });
+      if (error instanceof ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        return res.status(400).json({ error: messages });
+      }
+      res.status(400).json({ error: "Invalid data" });
     }
   },
 
   async update(req: Request, res: Response) {
     const id = String(req.params.id);
-    const { title, description, status, capacity } = req.body;
+
     try {
-      const event = await eventRepository.update(id, {
-        title,
-        description,
-        status,
-        capacity,
-      });
-      res.json(event);
+      const existingEvent = await eventRepository.findById(id);
+      if (!existingEvent) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const data = updateEventSchema.parse(req.body);
+      const updatedEvent = await eventRepository.update(id, data);
+
+      return res.json(updatedEvent);
     } catch (error) {
-      res.status(404).json({ error: "Event not found" });
+      if (error instanceof ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        return res.status(400).json({ error: messages });
+      }
+      return res.status(500).json({ error: "Failed to update event" });
     }
   },
 
