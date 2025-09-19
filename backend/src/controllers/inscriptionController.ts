@@ -16,14 +16,22 @@ export const inscriptionController = {
 
       const event = await eventRepository.findById(eventId);
       if (!event) {
-        return res.status(404).json({ error: "Evento não encontrado" });
+        return res.status(404).json({
+          error: "EVENT_NOT_FOUND",
+          message: "Evento não encontrado",
+          code: "EVENT_NOT_FOUND",
+        });
       }
 
       const currentCount = await inscriptionRepository.countInscriptions(
         eventId
       );
       if (currentCount >= event.capacity) {
-        return res.status(400).json({ error: "Evento lotado" });
+        return res.status(400).json({
+          error: "EVENT_FULL",
+          message: "Evento lotado. Não há mais vagas disponíveis",
+          code: "EVENT_FULL",
+        });
       }
 
       const inscription = await inscriptionRepository.create(validatedData);
@@ -31,24 +39,55 @@ export const inscriptionController = {
     } catch (error: any) {
       if (error instanceof ZodError) {
         return res.status(400).json({
-          error: error.issues.map((issue) => issue.message),
+          error: "VALIDATION_ERROR",
+          message: "Dados inválidos fornecidos",
+          code: "VALIDATION_ERROR",
+          details: error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
         });
       }
 
       if (error.code === "P2002") {
-        return res.status(400).json({
-          error: "Telefone já inscrito neste evento",
+        return res.status(409).json({
+          error: "DUPLICATE_PHONE",
+          message: "Este telefone já está inscrito neste evento",
+          code: "DUPLICATE_PHONE",
         });
       }
 
       if (error.code === "P2003") {
         return res.status(404).json({
-          error: "Evento não encontrado",
+          error: "EVENT_NOT_FOUND",
+          message: "Evento não encontrado",
+          code: "EVENT_NOT_FOUND",
         });
       }
 
+      console.error("Erro interno na criação de inscrição:", error);
       res.status(500).json({
-        error: "Erro interno do servidor",
+        error: "INTERNAL_ERROR",
+        message: "Erro interno do servidor",
+        code: "INTERNAL_ERROR",
+      });
+    }
+  },
+
+  async getInscriptionCount(req: Request, res: Response) {
+    const eventId = String(req.params.id);
+
+    try {
+      const currentCount = await inscriptionRepository.countInscriptions(
+        eventId
+      );
+      res.status(200).json({ count: currentCount });
+    } catch (error) {
+      console.error("Erro ao buscar contagem de inscrições:", error);
+      res.status(500).json({
+        error: "INTERNAL_ERROR",
+        message: "Erro ao buscar contagem de inscrições",
+        code: "INTERNAL_ERROR",
       });
     }
   },
@@ -58,10 +97,13 @@ export const inscriptionController = {
 
     try {
       const inscriptions = await inscriptionRepository.findByEventId(eventId);
-      res.json(inscriptions);
+      res.status(200).json(inscriptions);
     } catch (error) {
+      console.error("Erro ao buscar inscrições:", error);
       res.status(500).json({
-        error: "Erro ao buscar inscrições",
+        error: "INTERNAL_ERROR",
+        message: "Erro ao buscar inscrições",
+        code: "INTERNAL_ERROR",
       });
     }
   },
@@ -70,7 +112,6 @@ export const inscriptionController = {
     const eventId = String(req.params.eventId);
 
     try {
-      // Validate phone format
       const { phone } = inscriptionSchema.pick({ phone: true }).parse(req.body);
 
       await inscriptionRepository.deleteByEventAndPhone(eventId, phone);
@@ -78,7 +119,13 @@ export const inscriptionController = {
     } catch (error: any) {
       if (error instanceof ZodError) {
         return res.status(400).json({
-          error: error.issues.map((issue) => issue.message),
+          error: "VALIDATION_ERROR",
+          message: "Dados inválidos fornecidos",
+          code: "VALIDATION_ERROR",
+          details: error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
         });
       }
 
@@ -86,12 +133,17 @@ export const inscriptionController = {
         error.message === "Inscrição não encontrada para este telefone e evento"
       ) {
         return res.status(404).json({
-          error: "Inscrição não encontrada para este telefone e evento",
+          error: "INSCRIPTION_NOT_FOUND",
+          message: "Inscrição não encontrada para este telefone e evento",
+          code: "INSCRIPTION_NOT_FOUND",
         });
       }
 
+      console.error("Erro ao cancelar inscrição:", error);
       res.status(500).json({
-        error: "Erro ao cancelar inscrição",
+        error: "INTERNAL_ERROR",
+        message: "Erro ao cancelar inscrição",
+        code: "INTERNAL_ERROR",
       });
     }
   },

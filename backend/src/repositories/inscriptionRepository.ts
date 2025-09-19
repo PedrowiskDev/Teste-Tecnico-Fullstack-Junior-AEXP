@@ -19,11 +19,14 @@ export const inscriptionRepository = {
   },
 
   async countInscriptions(eventId: string) {
-    return await prisma.inscription.count({
+    console.log("Contando inscrições para eventId:", eventId);
+    const count = await prisma.inscription.count({
       where: {
         eventId,
       },
     });
+    console.log("Contagem encontrada:", count);
+    return count;
   },
 
   async findByEventId(eventId: string) {
