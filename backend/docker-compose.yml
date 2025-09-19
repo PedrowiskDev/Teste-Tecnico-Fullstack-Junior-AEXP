@@ -11,17 +11,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  app:
+  backend:
     build: .
     restart: on-failure
     depends_on:
       - db
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/mydb?schema=public
-      PORT: 3000
+      PORT: 4000
       NODE_ENV: development
     ports:
-      - "3000:3000"
+      - "4000:4000"
     volumes:
       - ./src:/usr/src/app/src
       - ./prisma:/usr/src/app/prisma
