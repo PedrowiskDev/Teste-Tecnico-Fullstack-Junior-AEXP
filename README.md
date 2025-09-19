@@ -6,11 +6,11 @@
 - Node.js
 - npm
 
-adicionar .env na pasta backend:
-PORT=4000
+adicionar .env na pasta backend:\
+PORT=4000\
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mydb?schema=public"
 
-adicionar .env.local na pasta front end:
+adicionar .env.local na pasta front end:\
 NEXT_PUBLIC_API_URL=http://localhost:4000
 
 ---
@@ -106,3 +106,4 @@ Beatriz Cunha — 11566555444
 Leticia Fonseca — 11555444333
 Aline Pinto — 11544333222
 Sabrina Duarte — 11533222111
+
