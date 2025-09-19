@@ -1,4 +1,3 @@
-// src/schemas/eventSchema.ts
 import { z } from "zod";
 
 export const createEventSchema = z.object({
