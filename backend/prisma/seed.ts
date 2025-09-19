@@ -3,11 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Limpar dados existentes
   await prisma.inscription.deleteMany();
   await prisma.event.deleteMany();
 
-  // Create 5 casual events
   const event1 = await prisma.event.create({
     data: {
       title: "Churrasco da Galera",
@@ -58,9 +56,8 @@ async function main() {
     },
   });
 
-  // Criar inscrições para os eventos
+  const formatPhone = (phone: string) => `+55${phone}`;
 
-  // Inscrições para o Churrasco (8 pessoas)
   const churrascoInscriptions = [
     { name: "Carlos Silva", phone: "11987654321" },
     { name: "Ana Santos", phone: "11976543210" },
@@ -76,12 +73,12 @@ async function main() {
     await prisma.inscription.create({
       data: {
         ...inscription,
+        phone: formatPhone(inscription.phone),
         eventId: event1.id,
       },
     });
   }
 
-  // Inscrições para a Pelada (12 pessoas)
   const futebolInscriptions = [
     { name: "Diego Martins", phone: "11999888777" },
     { name: "Lucas Ferreira", phone: "11988777666" },
@@ -101,12 +98,12 @@ async function main() {
     await prisma.inscription.create({
       data: {
         ...inscription,
+        phone: formatPhone(inscription.phone),
         eventId: event2.id,
       },
     });
   }
 
-  // Inscrições para o Aniversário (15 pessoas)
   const aniversarioInscriptions = [
     { name: "Fernanda Lima", phone: "11777666555" },
     { name: "Patricia Gomes", phone: "11766555444" },
@@ -129,12 +126,12 @@ async function main() {
     await prisma.inscription.create({
       data: {
         ...inscription,
+        phone: formatPhone(inscription.phone),
         eventId: event3.id,
       },
     });
   }
 
-  // Inscrições para o Happy Hour (6 pessoas)
   const happyHourInscriptions = [
     { name: "Roberto Machado", phone: "11622111000" },
     { name: "José Miranda", phone: "11611000999" },
@@ -148,12 +145,12 @@ async function main() {
     await prisma.inscription.create({
       data: {
         ...inscription,
+        phone: formatPhone(inscription.phone),
         eventId: event4.id,
       },
     });
   }
 
-  // Inscrições para Pizza e Netflix (4 pessoas)
   const pizzaInscriptions = [
     { name: "Beatriz Cunha", phone: "11566555444" },
     { name: "Leticia Fonseca", phone: "11555444333" },
@@ -165,6 +162,7 @@ async function main() {
     await prisma.inscription.create({
       data: {
         ...inscription,
+        phone: formatPhone(inscription.phone),
         eventId: event5.id,
       },
     });
