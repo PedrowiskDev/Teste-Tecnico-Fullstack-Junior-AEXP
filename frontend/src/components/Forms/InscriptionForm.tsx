@@ -31,9 +31,9 @@ interface InscriptionFormProps {
   eventId: string;
   eventTitle: string;
   onSuccess?: () => void;
+  isFull?: boolean;
 }
 
-// Função para aplicar máscara no telefone
 const applyPhoneMask = (value: string): string => {
   const numbers = value.replace(/\D/g, "").slice(0, 11);
 
@@ -52,7 +52,6 @@ const applyPhoneMask = (value: string): string => {
   )}`;
 };
 
-// Função para aplicar máscara no nome (apenas letras e espaços)
 const applyNameMask = (value: string): string =>
   value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
 
@@ -60,6 +59,7 @@ export function InscriptionForm({
   eventId,
   eventTitle,
   onSuccess,
+  isFull,
 }: InscriptionFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,20 +93,17 @@ export function InscriptionForm({
         phone: cleanPhone,
       });
 
-      // Sucesso
       setSubmitStatus({
         type: "success",
         message: "Inscrição realizada com sucesso!",
       });
 
-      // Aguardar um pouco para mostrar a mensagem de sucesso
       setTimeout(() => {
         setIsOpen(false);
         resetForm();
         onSuccess?.();
       }, 1500);
     } catch (error) {
-      // Log removido - erro já é tratado pela UI
       let errorMessage = "Erro ao realizar inscrição. Tente novamente.";
 
       if (error instanceof Error) {
@@ -131,7 +128,9 @@ export function InscriptionForm({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full bg-black h-10 text-lg">Registrar</Button>
+        <Button className="w-full bg-black h-10 text-lg" disabled={isFull}>
+          {isFull ? "Lotado" : "Registrar"}
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -144,7 +143,6 @@ export function InscriptionForm({
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            {/* Status da submissão */}
             {submitStatus.type && (
               <Alert
                 variant={

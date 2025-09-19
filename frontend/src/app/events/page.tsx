@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { eventService, Event } from "@/services/eventService";
 import { inscriptionService } from "../../services/inscriptionService";
-import { InscriptionForm } from "../../components/Forms/InscriptionForm"; // Importe o novo componente
+import { InscriptionForm } from "../../components/Forms/InscriptionForm";
+import { CreateEventForm } from "../../components/Forms/EventForm";
 import {
   Card,
   CardContent,
@@ -14,8 +15,9 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-// Interface estendida para incluir a contagem de inscrições
+import { DeleteEvent } from "@/components/Alert/DeleteEventAlert";
+import { UpdateEventForm } from "@/components/Forms/UpdateEventForm";
+import { InscriptionsListView } from "@/components/View/InscriptionView";
 interface EventWithCount extends Event {
   inscriptionCount: number;
 }
@@ -25,7 +27,6 @@ export default function EventList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar eventos ao montar o componente
   useEffect(() => {
     loadEvents();
   }, []);
@@ -43,16 +44,12 @@ export default function EventList() {
             const countResult = (await inscriptionService.getInscriptionCount(
               event.id
             )) as { count: number };
-            console.log(countResult.count);
+
             return {
               ...event,
               inscriptionCount: countResult.count,
             };
-          } catch (err) {
-            console.error(
-              `Erro ao buscar contagem para evento ${event.id}:`,
-              err
-            );
+          } catch {
             return {
               ...event,
               inscriptionCount: 0,
@@ -62,25 +59,16 @@ export default function EventList() {
       );
 
       setEvents(eventsWithCount);
-    } catch (err) {
+    } catch {
       setError("Erro ao carregar eventos");
-      console.error("Erro:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // const handleDeleteEvent = async (id: string) => {
-  //   if (!confirm("Tem certeza que deseja deletar este evento?")) return;
-
-  //   try {
-  //     await eventService.deleteEvent(id);
-  //     setEvents(events.filter((event) => event.id !== id));
-  //   } catch (err) {
-  //     setError("Erro ao deletar evento");
-  //     console.error("Erro:", err);
-  //   }
-  // };
+  const handleInscriptionDeleted = () => {
+    loadEvents();
+  };
 
   if (loading)
     return (
@@ -99,8 +87,14 @@ export default function EventList() {
 
   return (
     <div className="event-list">
-      <div className="flex justify-between items-center mb-6 border ">
+      <div className="flex justify-between items-center mb-4 border-b pb-4">
         <h1 className="text-3xl font-bold p-5">Lista de Eventos</h1>
+        <div className="flex gap-2 mr-5">
+          <CreateEventForm onSuccess={loadEvents} />
+        </div>
+      </div>
+
+      <div className="flex justify-center mb-6">
         <Button onClick={loadEvents} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
           Atualizar Lista
@@ -110,29 +104,73 @@ export default function EventList() {
       {events.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <p>Nenhum evento encontrado.</p>
+          <p className="text-sm mt-2">
+            Crie seu primeiro evento clicando no botão acima.
+          </p>
         </div>
       ) : (
-        <div className="flex w-fit">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
           {events.map((event) => (
-            <Card key={event.id} className="flex-1 m-3">
-              <CardHeader>
-                <CardTitle>{event.title}</CardTitle>
+            <Card key={event.id} className="flex flex-col mx-5">
+              <CardHeader className="flex flex-row justify-between">
+                <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+                <DeleteEvent eventId={event.id} onDeleteSuccess={loadEvents} />
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-3">
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground mb-3 line-clamp-3">
                   {event.description}
                 </p>
-                <div className="flex justify-between">
-                  <p className="">{event.inscriptionCount} Inscritos</p>
-                  <p className="">{event.capacity} Vagas</p>
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium text-blue-600">
+                    {event.inscriptionCount} Inscritos
+                  </span>
+                  <span className="font-medium text-green-600">
+                    {event.capacity} Vagas
+                  </span>
+                </div>
+
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.min(
+                          (event.inscriptionCount / event.capacity) * 100,
+                          100
+                        )}%`,
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {event.capacity - event.inscriptionCount} vagas restantes
+                  </p>
                 </div>
               </CardContent>
-              <CardFooter>
-                <InscriptionForm
-                  eventId={event.id}
-                  eventTitle={event.title}
-                  onSuccess={loadEvents}
-                />
+
+              <CardFooter className="pt-4 border-t bg-muted/20">
+                <div className="flex items-center justify-between w-full gap-2">
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-muted transition-colors">
+                      <InscriptionsListView
+                        eventId={event.id}
+                        eventTitle={event.title}
+                        onInscriptionDeleted={handleInscriptionDeleted}
+                      />
+                    </div>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-muted transition-colors">
+                      <UpdateEventForm event={event} onSuccess={loadEvents} />
+                    </div>
+                  </div>
+
+                  <div className="flex-1 flex justify-end">
+                    <InscriptionForm
+                      eventId={event.id}
+                      eventTitle={event.title}
+                      onSuccess={loadEvents}
+                      isFull={event.inscriptionCount >= event.capacity}
+                    />
+                  </div>
+                </div>
               </CardFooter>
             </Card>
           ))}
