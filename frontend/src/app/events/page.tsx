@@ -117,7 +117,7 @@ export default function EventList() {
                 <DeleteEvent eventId={event.id} onDeleteSuccess={loadEvents} />
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-muted-foreground mb-3 line-clamp-3">
+                <p className="text-muted-foreground mb-3 h-[100px] overflow-y-auto">
                   {event.description}
                 </p>
                 <div className="flex justify-between text-sm">
