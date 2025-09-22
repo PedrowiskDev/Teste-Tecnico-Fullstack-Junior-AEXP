@@ -43,7 +43,7 @@ Frontend estará disponível em: http://localhost:3000
 
 ---
 
-Para deletar inscrições, use os endpoints da API (ex.: DELETE /inscriptions/:id).
+Para testar deletar inscrições basta inserir os números de telefone aos respectivos "usuários"
 
 Lista de inscrições para teste
 
@@ -106,4 +106,5 @@ Beatriz Cunha — 11566555444
 Leticia Fonseca — 11555444333
 Aline Pinto — 11544333222
 Sabrina Duarte — 11533222111
+
 
